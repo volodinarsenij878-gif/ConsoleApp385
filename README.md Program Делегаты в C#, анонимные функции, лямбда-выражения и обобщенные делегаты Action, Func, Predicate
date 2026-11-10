@@ -1,0 +1,207 @@
+    ﻿using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    namespace FinancialPipelineCore
+    {
+    // =========================================================
+    // Шаг 1. Пользовательский делегат математического преобразования
+    // =========================================================
+    public delegate decimal CurrencyTransformer(decimal amount, double factor);
+
+    public static class FinancialOperations
+    {
+        // Сумма с учетом налога
+        public static decimal ApplyTax(decimal amount, double taxRate)
+        {
+            return amount * (decimal)(1.0 + taxRate);
+        }
+
+        // Снижение суммы на скидку
+        public static decimal ApplyDiscount(decimal amount, double discountPercent)
+        {
+            return amount - (amount * (decimal)discountPercent);
+        }
+
+        // Умножение на коэффициент инфляции
+        public static decimal ApplyInflationIndex(decimal amount, double rate)
+        {
+            return amount * (decimal)rate;
+        }
+    }
+
+    // =========================================================
+    // Шаг 2. Система логирования на базе MulticastDelegate
+    // =========================================================
+    public delegate void AuditLogger(string transactionInfo);
+
+    public static class AuditDispatch
+    {
+        // Обычный вывод в консоль
+        public static void LogToConsole(string info)
+        {
+            Console.WriteLine($"[ЛОГ]: {info}");
+        }
+
+        // Желтым цветом — модуль финансового мониторинга
+        public static void LogToSecurityMonitor(string info)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"[FIN-MONITORING]: {info}");
+            Console.ResetColor();
+        }
+
+        // Синим цветом — имитация записи в файл
+        public static void LogToFileSimulation(string info)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"[STORAGE-WRITE]: {info}");
+            Console.ResetColor();
+        }
+    }
+
+    // =========================================================
+    // Шаг 3. Конвейерный процессинг массивов (вручную, без LINQ)
+    // =========================================================
+    public static class DataPipelineEngine
+    {
+        // Фильтрация через Predicate<decimal>: массив точного результирующего размера
+        public static decimal[] FilterTransactions(decimal[] source, Predicate<decimal> condition)
+        {
+            // Первый проход: считаем количество подходящих элементов
+            int matchCount = 0;
+            foreach (decimal item in source)
+
+            return result;
+        }
+
+        // Трансформация через Func<decimal, decimal>: новый массив того же размера
+        public static decimal[] TransformBatch(decimal[] source, Func<decimal, decimal> transformer)
+        {
+            decimal[] result = new decimal[source.Length];
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                result[i] = transformer(source[i]);
+            }
+
+            return result;
+        }
+
+        // Действие через Action<decimal>: последовательная обработка каждого элемента
+        public static void ExecuteWorkflow(decimal[] source, Action<decimal> stepAction)
+        {
+            foreach (decimal item in source)
+            {
+                stepAction(item);
+            }
+        }
+    }
+
+    // =========================================================
+    // Шаг 4. Демонстрационный сценарий
+    // =========================================================
+    class Program
+    {
+        static void Main()
+        {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.WriteLine("=== СИСТЕМА ФИЛЬТРАЦИИ ФИНАНСОВОЙ АНАЛИТИКИ ===\n");
+
+            // ---------------------------------------------------------
+            // 4.1. Пользовательский делегат CurrencyTransformer
+            // ---------------------------------------------------------
+            Console.WriteLine("--- ЧАСТЬ 1: пользовательский делегат CurrencyTransformer ---\n");
+
+            CurrencyTransformer transformer;
+
+            // Связываем делегат с методом начисления налога
+            transformer = FinancialOperations.ApplyTax;
+            decimal taxedAmount = transformer(100000m, 0.20); // НДС 20%
+            Console.WriteLine($"ApplyTax: 100 000 руб. + НДС 20% = {taxedAmount} руб.");
+
+            // Переключаем делегат на метод скидки
+            transformer = FinancialOperations.ApplyDiscount;
+            decimal discountedAmount = transformer(100000m, 0.15); // Скидка 15%
+            Console.WriteLine($"ApplyDiscount: 100 000 руб. со скидкой 15% = {discountedAmount} руб.\n");
+
+            // ---------------------------------------------------------
+            // 4.2. Многоадресный делегат (+= и -=)
+            // ---------------------------------------------------------
+            Console.WriteLine("--- ЧАСТЬ 2: многоадресный делегат (цепочка вызовов) ---\n");
+
+            AuditLogger auditChain = AuditDispatch.LogToConsole;
+            auditChain += AuditDispatch.LogToSecurityMonitor; // второй обработчик
+            auditChain += AuditDispatch.LogToFileSimulation;  // третий обработчик
+
+            Console.WriteLine(">>> Вызов цепочки из 3 обработчиков:");
+            auditChain("Инициализация финансового шлюза");
+            Console.WriteLine();
+
+            // Удаляем мониторинг безопасности из цепочки
+            auditChain -= AuditDispatch.LogToSecurityMonitor;
+
+            Console.WriteLine(">>> Вызов цепочки после удаления мониторинга (-=):");
+            auditChain("Отключение узла мониторинга");
+            Console.WriteLine();
+
+            // ---------------------------------------------------------
+            // 4.3. Обработка данных через Action, Func, Predicate и лямбды
+            // ---------------------------------------------------------
+            Console.WriteLine("--- ЧАСТЬ 3: конвейер обработки транзакций ---\n");
+
+            decimal[] transactions = { 12000m, -4500m, 85000m, -1200m, 340000m, 0m, 1500m };
+
+            Console.WriteLine("Исходный массив транзакций:");
+            PrintArray(transactions);
+
+            // ФИЛЬТРАЦИЯ (Predicate): только положительные доходы, лямбда x => x > 0
+            decimal[] incomes = DataPipelineEngine.FilterTransactions(transactions, x => x > 0);
+
+            Console.WriteLine("\n>>> Результат фильтрации (Predicate x => x > 0):");
+            PrintArray(incomes);
+
+            // ТРАНСФОРМАЦИЯ (Func): конвертация валюты по курсу 1/90
+            decimal[] converted = DataPipelineEngine.TransformBatch(incomes, x => Math.Round(x / 90.0m, 2));
+
+            Console.WriteLine("\n>>> Результат трансформации (Func: конвертация по курсу 1/90):");
+            PrintArray(converted);
+
+            // ДЕЙСТВИЕ (Action): вывод каждой суммы с форматированием валюты
+            Console.WriteLine("\n>>> Действие (Action) — вывод в консоль:");
+            DataPipelineEngine.ExecuteWorkflow(converted,
+                val => Console.WriteLine($"Транзакция в валюте: ${val:F2}"));
+
+            // КОМБИНИРОВАННЫЙ ПРЕДИКАТ: крупные транзакции (свыше $1000)
+            Console.WriteLine("\n>>> Комбинированный фильтр (анонимная лямбда: свыше $1000):");
+
+            // Вариант через анонимный метод в синтаксисе delegate
+            Predicate<decimal> isLargeViaDelegate = delegate (decimal val) { return val > 1000m; };
+            decimal[] largeViaDelegate = DataPipelineEngine.FilterTransactions(converted, isLargeViaDelegate);
+            PrintArray(largeViaDelegate);
+
+            // Тот же фильтр компактной лямбдой — и вывод итогового списка
+            decimal[] largeTransactions = DataPipelineEngine.FilterTransactions(converted, x => x > 1000m);
+
+            Console.WriteLine("\n>>> Итоговые крупные транзакции (Action):");
+            DataPipelineEngine.ExecuteWorkflow(largeTransactions,
+                val => Console.WriteLine($"Крупная транзакция: ${val:F2} (требует проверки)"));
+
+            Console.WriteLine("\nНажмите любую клавишу для завершения...");
+            Console.ReadKey();
+        }
+
+        // Вспомогательный метод для аккуратного вывода массива
+        static void PrintArray(decimal[] array)
+        {
+            Console.Write("[ ");
+            for (int i = 0; i < array.Length; i++)
+            {
+                Console.Write(array[i] + (i < array.Length - 1 ? "; " : " "));
+            }
+            Console.WriteLine("]");
+        }
+    }
+    }
